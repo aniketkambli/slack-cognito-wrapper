@@ -65,10 +65,8 @@ const getTokens = (code, state, host) =>
             // It means the ID token is empty except for metadata.
             ...userInfo
           };
-          console.log('line 66')
 
           const idToken = crypto.makeIdToken(payload, host);
-          console.log('line 67')
 
           const tokenResponse = {
             ...slackToken,
@@ -76,8 +74,6 @@ const getTokens = (code, state, host) =>
             token_type: 'bearer',
             id_token: idToken
           };
-          console.log('line 77')
-
 
           console.log('Resolved token response: %j', tokenResponse, {});
 

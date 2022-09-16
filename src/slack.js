@@ -22,7 +22,6 @@ const check = response => {
         }`
       );
     } else if (response.status === 200) {
-      console.log('response 25',response.data)
       return response.data;
     }
   }
