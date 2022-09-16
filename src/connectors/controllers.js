@@ -3,16 +3,22 @@ const openid = require('../openid');
 
 module.exports = respond => ({
   authorize: (client_id, scope, state, response_type) => {
-    const cleanScope = scope.split('openid ').join('');
-    const authorizeUrl = openid.getAuthorizeUrl(
-      client_id,
-      cleanScope,
-      state,
-      response_type
-    );
-    logger.info('Redirecting to authorizeUrl');
-    logger.debug('Authorize Url is: %s', authorizeUrl, {});
-    respond.redirect(authorizeUrl);
+    try{
+      const cleanScope = scope.split('openid ').join('');
+      const authorizeUrl = openid.getAuthorizeUrl(
+        client_id,
+        cleanScope,
+        state,
+        response_type
+      );
+      logger.info('Redirecting to authorizeUrl');
+      logger.debug('Authorize Url is: %s', authorizeUrl, {});
+      respond.redirect(authorizeUrl);
+    }
+    catch(err){
+      logger.debug('error',err);
+    }
+
   },
   userinfo: tokenPromise => {
     tokenPromise

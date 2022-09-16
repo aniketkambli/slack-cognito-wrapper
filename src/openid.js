@@ -1,32 +1,33 @@
-const logger = require('./connectors/logger');
 const crypto = require('./crypto');
 const slack = require('./slack');
 
 const getJwks = () => ({ keys: [crypto.getPublicKey()] });
 
-const getUserInfo = accessToken =>
+const getUserInfo = (accessToken,user_id) =>
   slack()
-    .getUserDetails(accessToken)
+    .getUserDetails(accessToken,user_id)
     .then(userDetails => {
-      logger.debug('Fetched user details: %j', userDetails, {});
+      console.log('Fetched user details: %j', userDetails, {});
       // Here we map the slack user response to the standard claims from
       // OpenID. The mapping was constructed by following
       // and http://openid.net/specs/openid-connect-core-1_0.html#StandardClaims
       const claims = {
         sub: `${userDetails.user.id}`, // OpenID requires a string
-        name: userDetails.user.real_name,
+        name: userDetails.user.name,
         preferred_username: userDetails.user.name,
-        email: userDetails.user.profile.email,
-        phone: userDetails.user.profile.phone,
-        picture: userDetails.user.profile.image_512,
+        email: `${userDetails.user.profile.name}@gmail.com`,
+        phone: '9930290429',
+        picture: 'https://demo.com',
         updated_at: userDetails.user.updated,
-        team: userDetails.user.team,
-        website: userDetails.user.team,
-        given_name: userDetails.user.first_name,
-        family_name: userDetails.user.last_name
+        team: userDetails.user.team_id,
+        website: userDetails.user.team_id,
+        given_name: userDetails.user.name,
+        family_name: userDetails.user.name
       };
-      logger.debug('Resolved claims: %j', claims, {});
+      console.log('Resolved claims: %j', claims, {});
       return claims;
+    }).catch(err=>{
+      console.log('line 30 error',err)
     });
 
 const getAuthorizeUrl = (client_id, scope, state, response_type) =>
@@ -34,12 +35,12 @@ const getAuthorizeUrl = (client_id, scope, state, response_type) =>
 
 const getTokens = (code, state, host) =>
   slack()
-    .getToken(code, state)
+    .getToken(code)
     .then(slackToken => {
-      logger.debug('Got token: %s', JSON.stringify(slackToken), {});
+      console.log('Got token 1: %s', JSON.stringify(slackToken), {});
 
-      return getUserInfo(slackToken.access_token).then(userInfo => {
-        logger.debug('Got user details: %s', JSON.stringify(userInfo), {});
+      return getUserInfo(slackToken.access_token,slackToken.authed_user.id).then(userInfo => {
+        console.log('Got user details 1: %s', JSON.stringify(userInfo), {});
 
         // Slack returns scopes separated by commas
         // But OAuth wants them to be spaces
@@ -47,6 +48,7 @@ const getTokens = (code, state, host) =>
         // Also, we need to add openid as a scope,
         // since we stripped it out earlier otherwise Slack would complain
         const scope = `openid ${slackToken.scope.replace(',', ' ')}`;
+        console.log('scope',scope);
 
         // ** JWT ID Token required fields **
         // iss - issuer https url
@@ -63,20 +65,28 @@ const getTokens = (code, state, host) =>
             // It means the ID token is empty except for metadata.
             ...userInfo
           };
+          console.log('line 66')
 
           const idToken = crypto.makeIdToken(payload, host);
+          console.log('line 67')
+
           const tokenResponse = {
             ...slackToken,
             scope,
             token_type: 'bearer',
             id_token: idToken
           };
+          console.log('line 77')
 
-          logger.debug('Resolved token response: %j', tokenResponse, {});
+
+          console.log('Resolved token response: %j', tokenResponse, {});
 
           resolve(tokenResponse);
         });
       });
+    })
+    .catch(err=>{
+      console.log('error in openidjs',err);
     });
 
 const getConfigFor = host => ({

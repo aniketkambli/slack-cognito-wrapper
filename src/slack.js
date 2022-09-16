@@ -2,45 +2,52 @@ const axios = require('axios');
 const {
   SLACK_CLIENT_ID,
   SLACK_CLIENT_SECRET,
-  COGNITO_REDIRECT_URI
 } = require('./config');
 const logger = require('./connectors/logger');
 
 const getApiEndpoints = () => ({
   userDetails: `https://slack.com/api/users.info`,
-  oauthToken: `https://slack.com/api/oauth.access`,
-  oauthAuthorize: `https://slack.com/oauth/authorize`
+  oauthToken: `https://slack.com/api/oauth.v2.access`,
+  oauthAuthorize: `https://slack.com/oauth/v2/authorize`
 });
 
 const check = response => {
+  console.log('check response',response);
   logger.debug('Checking response: %j', response, {});
   if (response.data) {
     if (response.data.error) {
       throw new Error(
-        `Slack API responded with a failure: ${response.data.error}, ${
+        `Slack API responded with a failure1: ${response.data.error}, ${
           response.data.error_description
         }`
       );
     } else if (response.status === 200) {
+      console.log('response 25',response.data)
       return response.data;
     }
   }
   throw new Error(
-    `Slack API responded with a failure: ${response.status} (${
+    `Slack API responded with a failure2: ${response.status} (${
       response.statusText
     })`
   );
 };
 
-const slackGet = (url, accessToken) =>
-  axios({
-    method: 'get',
+const slackGet = async (url, accessToken,user_id) =>{
+  console.log('Inside slack get');
+  const res= await axios({
+    method: 'POST',
     url,
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+    },
     params: {
-      token: accessToken,
-      user: 'U2T7NS9AA'
+      user: user_id
     }
   });
+  return res;
+}
+
 
 module.exports = (apiBaseUrl, loginBaseUrl) => {
   const urls = getApiEndpoints(apiBaseUrl, loginBaseUrl || apiBaseUrl);
@@ -53,35 +60,29 @@ module.exports = (apiBaseUrl, loginBaseUrl) => {
         scope
       )}&state=${state}&response_type=${response_type}`;
     },
-    getUserDetails: accessToken =>
-      slackGet(urls.userDetails, accessToken).then(check),
-    getToken: (code, state) => {
+    getUserDetails: (accessToken,user_id) =>
+      slackGet(urls.userDetails, accessToken,user_id).then(check).catch(e=>console.log('slack 63',e)),
+    getToken: (code) => {
+      console.log('inside get token code',code);
       const data = {
         // OAuth required fields
-        grant_type: 'authorization_code',
-        redirect_uri: COGNITO_REDIRECT_URI,
         client_id: SLACK_CLIENT_ID,
         // Slack Specific
-        response_type: 'code',
         client_secret: SLACK_CLIENT_SECRET,
         code,
-        // State may not be present, so we conditionally include it
-        ...(state && { state })
       };
-
-      logger.debug(
+      console.log('inside get token',data);
+      console.log(
         'Getting token from %s with data: %j',
         urls.oauthToken,
         data,
-        {}
       );
       return axios({
-        method: 'get',
+        method: 'GET',
         url: urls.oauthToken,
         params: data,
         headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/x-www-form-urlencoded',
         }
       }).then(check);
     }

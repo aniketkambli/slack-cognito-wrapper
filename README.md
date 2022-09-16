@@ -1,4 +1,5 @@
 # Slack OpenID Connect Wrapper for Cognito
+Inspired from https://github.com/jonoirwinrsa/slack-cognito-openid-wrapper with some modifications to work with new slack oauth v2 API's, don't add new tests and use console.log instead of logger to show outputs in lambda, don't modify eslint configuration.
 
 [![Build Status](https://travis-ci.org/TimothyJones/slack-cognito-openid-wrapper.svg?branch=master)](https://travis-ci.org/TimothyJones/slack-cognito-openid-wrapper)
 [![Maintainability](https://api.codeclimate.com/v1/badges/f787719be529b1c0e8ee/maintainability)](https://codeclimate.com/slack/TimothyJones/slack-openid-wrapper/maintainability)

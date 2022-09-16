@@ -17,18 +17,24 @@ const parseBody = event => {
 };
 
 module.exports.handler = (event, context, callback) => {
-  const body = parseBody(event);
-  const query = event.queryStringParameters || {};
-
-  const code = body.code || query.code;
-  const state = body.state || query.state;
-
-  controllers(responder(callback)).token(
-    code,
-    state,
-    auth.getIssuer(
-      event.headers.Host,
-      event.requestContext && event.requestContext.stage
-    )
-  );
+  try{
+    const body = parseBody(event);
+    const query = event.queryStringParameters || {};
+    const code = body.code || query.code;
+    const state = body.state || query.state;
+    console.log('event body',event)
+    console.log(('code',code));
+    console.log(('state',state));
+    controllers(responder(callback)).token(
+      code,
+      state,
+      auth.getIssuer(
+        event.headers.Host,
+        event.requestContext && event.requestContext.stage
+      )
+    );
+  }
+  catch(e){
+    console.log('token.js',e)
+  }
 };
