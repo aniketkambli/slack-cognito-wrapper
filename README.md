@@ -1,6 +1,13 @@
 # Slack OpenID Connect Wrapper for Cognito
 Inspired from https://github.com/jonoirwinrsa/slack-cognito-openid-wrapper with some modifications to work with new slack oauth v2 API's, don't add new tests and use console.log instead of logger to show outputs in lambda, don't modify eslint configuration.
 
+Also I modified the token creation logic, now you can find the access token received from slack inside the 
+cognito issued token (Decode it on jwt.io) In order to store the access token , create a custom attribute in cognito and map it in the oidc slack provider Attribute mapping -> OIDC -> new attribute -> access_token mapped to custom:access_token.
+
+If in case cognito does not verify the email and it is showing as false then map the email_verified attribute to Email Verified. I have already implemented the code to give cognito the value (is_email_verified) received from slack you just need to add in inside the mapping.
+
+Happy coding !
+
 [![Build Status](https://travis-ci.org/TimothyJones/slack-cognito-openid-wrapper.svg?branch=master)](https://travis-ci.org/TimothyJones/slack-cognito-openid-wrapper)
 [![Maintainability](https://api.codeclimate.com/v1/badges/f787719be529b1c0e8ee/maintainability)](https://codeclimate.com/slack/TimothyJones/slack-openid-wrapper/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/f787719be529b1c0e8ee/test_coverage)](https://codeclimate.com/slack/TimothyJones/slack-openid-wrapper/test_coverage)
