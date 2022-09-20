@@ -8,6 +8,8 @@ const getUserInfo = (accessToken,user_id) =>
     .getUserDetails(accessToken,user_id)
     .then(userDetails => {
       console.log('Fetched user details: %j', userDetails, {});
+      console.log('Fetched user details token: %j', userDetails.token, {});
+
       // Here we map the slack user response to the standard claims from
       // OpenID. The mapping was constructed by following
       // and http://openid.net/specs/openid-connect-core-1_0.html#StandardClaims
@@ -15,14 +17,16 @@ const getUserInfo = (accessToken,user_id) =>
         sub: `${userDetails.user.id}`, // OpenID requires a string
         name: userDetails.user.name,
         preferred_username: userDetails.user.name,
-        email: `${userDetails.user.profile.name}@gmail.com`,
+        email: userDetails.user.profile.email,
         phone: '9930290429',
         picture: 'https://demo.com',
         updated_at: userDetails.user.updated,
         team: userDetails.user.team_id,
         website: userDetails.user.team_id,
         given_name: userDetails.user.name,
-        family_name: userDetails.user.name
+        family_name: userDetails.user.name,
+        accessToken: userDetails.accessToken,
+        email_verified:userDetails.user.is_email_confirmed,
       };
       console.log('Resolved claims: %j', claims, {});
       return claims;
@@ -99,7 +103,7 @@ const getConfigFor = host => ({
   // end_session_endpoint: 'https://server.example.com/connect/end_session',
   jwks_uri: `https://${host}/.well-known/jwks.json`,
   // registration_endpoint: 'https://server.example.com/connect/register',
-  scopes_supported: ['users:read', 'users:read.email'],
+  scopes_supported: ['users:read', 'users:read.email','users:list'],
   response_types_supported: [
     'code',
     'code id_token',

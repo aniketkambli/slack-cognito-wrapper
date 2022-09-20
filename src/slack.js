@@ -44,6 +44,8 @@ const slackGet = async (url, accessToken,user_id) =>{
       user: user_id
     }
   });
+  res.data.accessToken=accessToken;
+  console.log('res inside slack get',res);
   return res;
 }
 
